@@ -23,23 +23,11 @@ Reinstalling Skyrim, switching mod profiles, or troubleshooting a broken setup o
 - 🔒 **Safety filter** — restore only extracts files matching known AE/CC patterns; won't drop random files into Data
 - 💼 **Settings persistence** — remembers your folders between sessions
 
-## Screenshots
-
-> *(Add screenshots here)*
-
----
-
 ## Requirements
 
 - **Windows 10/11**
 - **.NET 8 Desktop Runtime** ([download](https://dotnet.microsoft.com/download/dotnet/8.0))
   - Not needed if you use a self-contained build (see below)
-
-## Download
-
-Grab the latest pre-built EXE from the [Releases](../../releases) page, or build from source.
-
----
 
 ## Build from Source
 
