@@ -11,7 +11,7 @@ A lightweight Windows desktop app to **backup and restore Skyrim Special Edition
 
 ## Why?
 
-Reinstalling Skyrim, switching mod profiles, or troubleshooting a broken setup often means losing or re-downloading your purchased Anniversary Edition / Creation Club content. This tool packages all CC/AE files into a single timestamped `.zip` you can restore anytime — no Bethesda re-download required.
+Reinstalling Skyrim, switching mod profiles, or troubleshooting a broken setup often means losing or re-downloading your purchased Anniversary Edition / Creation Club content. This tool packages all CC/AE files into a single timestamped `.zip` you can restore anytime — no re-download required.
 
 ## Features
 
