@@ -1,4 +1,7 @@
+using SkyrimAEBackup.Core;
+using System;
 using System.IO;
+using System.Linq;
 using System.Windows;
 
 namespace SkyrimAEBackup;
@@ -93,33 +96,20 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void Backup_Click(object sender, RoutedEventArgs e)
+    private void Backup_Click(object sender, RoutedEventArgs e)
     {
         if (!ValidateSkyrim()) return;
         if (!ValidateBackupFolder()) return;
 
-        var skyrim = SkyrimPathBox.Text;
-        var folder = BackupFolderBox.Text;
-        var zipPath = Path.Combine(folder, $"Skyrim_AE_Backup_{DateTime.Now:yyyyMMdd_HHmmss}.zip");
-
-        SetBusy(true, "Backing up...");
-        await Task.Run(() =>
+        var dlg = new BackupDialog(SkyrimPathBox.Text, BackupFolderBox.Text)
         {
-            try
-            {
-                var progress = new Progress<string>(m => Dispatcher.Invoke(() => Log(m)));
-                var count = BackupManager.BackupAEContent(skyrim, zipPath, progress);
-                Dispatcher.Invoke(() => Log($"OK  Backup complete: {count} file(s) -> {zipPath}"));
-            }
-            catch (Exception ex)
-            {
-                Dispatcher.Invoke(() => Log($"ERR  {ex.Message}"));
-            }
-        });
-        SetBusy(false, "Ready");
+            Owner = this
+        };
+        dlg.ShowDialog();
+        Log("Backup dialog closed.");
     }
 
-    private async void Restore_Click(object sender, RoutedEventArgs e)
+    private void Restore_Click(object sender, RoutedEventArgs e)
     {
         if (!ValidateSkyrim()) return;
 
@@ -131,40 +121,58 @@ public partial class MainWindow : Window
         };
         if (dlg.ShowDialog() != true) return;
 
-        var confirm = MessageBox.Show(
-            "Restore will extract AE content into your Skyrim Data folder, overwriting existing files. Continue?",
-            "Confirm Restore", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-        if (confirm != MessageBoxResult.Yes) return;
-
-        SetBusy(true, "Restoring...");
-        var skyrim = SkyrimPathBox.Text;
-        var zipPath = dlg.FileName;
-        await Task.Run(() =>
+        var restoreWindow = new RestoreDialog(dlg.FileName, SkyrimPathBox.Text)
         {
-            try
-            {
-                var progress = new Progress<string>(m => Dispatcher.Invoke(() => Log(m)));
-                var restored = BackupManager.RestoreAEContent(zipPath, skyrim, progress);
-                Dispatcher.Invoke(() => Log($"OK  Restored {restored} file(s)."));
-            }
-            catch (Exception ex)
-            {
-                Dispatcher.Invoke(() => Log($"ERR  {ex.Message}"));
-            }
-        });
-        SetBusy(false, "Ready");
+            Owner = this
+        };
+        restoreWindow.ShowDialog();
+        Log($"Restore dialog closed for: {dlg.FileName}");
     }
 
-    private void Scan_Click(object sender, RoutedEventArgs e)
+    private void Validate_Click(object sender, RoutedEventArgs e)
     {
         if (!ValidateSkyrim()) return;
         try
         {
-            var dataFolder = Path.Combine(SkyrimPathBox.Text, "Data");
-            var files = AEContentDetector.FindAEFiles(dataFolder);
-            Log($"Found {files.Count} AE/CC file(s) in Data folder:");
-            foreach (var f in files) Log($"    {Path.GetFileName(f)}");
-            if (files.Count == 0) Log("    (none)");
+            var root = SkyrimPathBox.Text;
+            var cccPath = Path.Combine(root, "Skyrim.ccc");
+            var aeList = AEContentDetector.ReadCccList(root);
+            var present = AEContentDetector.FindCategorizedFiles(root);
+            var missing = AEContentDetector.FindMissingAEPlugins(root);
+
+            Log("--- Validation Report ---");
+            if (!File.Exists(cccPath))
+            {
+                Log("WARN  Skyrim.ccc not found in game root. Cannot determine canonical AE list.");
+                Log($"       Falling back to pattern matching. {present.Count} cc* file(s) detected:");
+                foreach (var p in present) Log($"       [{p.Category}] {p.Name}");
+                return;
+            }
+
+            Log($"Canonical AE list (Skyrim.ccc): {aeList.Count} plugin(s) expected");
+
+            var aePresent = present.Where(p => p.Category == ContentCategory.AE).ToList();
+            var ccPresent = present.Where(p => p.Category == ContentCategory.OtherCC).ToList();
+
+            Log($"AE content present: {aePresent.Count} file(s)");
+            foreach (var p in aePresent) Log($"    OK   {p.Name}");
+
+            if (missing.Count > 0)
+            {
+                Log($"AE content MISSING: {missing.Count} plugin(s)");
+                foreach (var m in missing) Log($"    MISS {m}");
+            }
+            else
+            {
+                Log("AE content: nothing missing.");
+            }
+
+            if (ccPresent.Count > 0)
+            {
+                Log($"Other CC (not in AE bundle): {ccPresent.Count} file(s)");
+                foreach (var p in ccPresent) Log($"    EXTRA {p.Name}");
+            }
+            Log("--- End Report ---");
         }
         catch (Exception ex)
         {
@@ -210,14 +218,6 @@ public partial class MainWindow : Window
             return false;
         }
         return true;
-    }
-
-    private void SetBusy(bool busy, string status)
-    {
-        BackupBtn.IsEnabled = !busy;
-        RestoreBtn.IsEnabled = !busy;
-        ScanBtn.IsEnabled = !busy;
-        StatusText.Text = status;
     }
 
     private void Log(string msg)
