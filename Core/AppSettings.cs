@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Text.Json;
 
-namespace SkyrimAEBackup;
+namespace SkyrimAEBackup.Core;
 
 public class AppSettings
 {

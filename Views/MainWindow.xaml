@@ -53,8 +53,8 @@
                     Click="Backup_Click" x:Name="BackupBtn"/>
             <Button Content="Restore from Backup..." Padding="14,6" Margin="0,0,8,0"
                     Click="Restore_Click" x:Name="RestoreBtn"/>
-            <Button Content="Scan AE Content" Padding="14,6"
-                    Click="Scan_Click" x:Name="ScanBtn"/>
+            <Button Content="Validate Content" Padding="14,6"
+                    Click="Validate_Click" x:Name="ValidateBtn"/>
         </StackPanel>
 
         <Border Grid.Row="4" BorderBrush="#CCCCCC" BorderThickness="1"

@@ -12,4 +12,15 @@
   <ItemGroup>
     <Using Include="System.IO" />
   </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\BackupDialog.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Page>
+    <Page Update="Views\MainWindow.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Page>
+    <Page Update="Views\RestoreDialog.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Page>
+  </ItemGroup>
 </Project>

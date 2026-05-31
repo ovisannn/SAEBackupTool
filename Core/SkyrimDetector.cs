@@ -2,7 +2,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using Microsoft.Win32;
 
-namespace SkyrimAEBackup;
+namespace SkyrimAEBackup.Core;
 
 public static class SkyrimDetector
 {
